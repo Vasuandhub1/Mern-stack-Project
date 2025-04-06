@@ -34,6 +34,15 @@ const productSchema = new mongoose.Schema(
     shipping: {
       type: Boolean,
     },
+    isCustomized:{
+      type:Boolean,
+      default:false
+    },
+    customizedBy:{
+      type:mongoose.Schema.model.ObjectId,
+      ref:"users"
+    }
+    
   },
   { timestamps: true }
 );

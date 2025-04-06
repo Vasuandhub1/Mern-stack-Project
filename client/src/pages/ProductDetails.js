@@ -6,6 +6,7 @@ import { useCart } from "../context/cart";
 import toast from "react-hot-toast";
 
 
+
 const ProductDetails = () => {
   const params = useParams();
   const navigate = useNavigate();
@@ -73,7 +74,12 @@ const ProductDetails = () => {
                         );
                         toast.success("Item Added to cart");
                       }} >ADD TO CART</button>
-          <button class="btn btn-secondary ms-1">CUSTOMISE</button>
+          <button class="btn btn-secondary ms-1"
+          onClick={()=>{
+            alert("redirecting to the customization page")
+            navigate(`/product/customise/${product._id}`)
+          }}
+          >CUSTOMISE</button>
         </div>
       </div>
       <hr />

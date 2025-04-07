@@ -6,6 +6,7 @@ import axios from "axios"
 import Layout from '../components/Layout/Layout';
 import { useCart } from "../context/cart";
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const dataURLtoBlob = (dataurl) => {
   const arr = dataurl.split(',');
@@ -27,6 +28,7 @@ const URLImage = ({ src, ...rest }) => {
 };
 
 const CustomizeProduct = () => {
+  const navigate = useNavigate()  
     const [cart,setCart]=useCart()
   const { customize } = useParams();
   const [uri,Seturi]=useState("")
@@ -71,6 +73,7 @@ const CustomizeProduct = () => {
                                   JSON.stringify([...cart, data.products])
                                 );
                                 toast.success("Item Added to cart");
+                               
                               
       } else {
         toast.custom(
@@ -79,6 +82,7 @@ const CustomizeProduct = () => {
           </div>
         );
         toast.success("Product Created Successfully");
+        navigate("/cart")
       }
     }catch(err){
       console.log(err);

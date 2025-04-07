@@ -3,6 +3,9 @@ import categoryModel from "../models/categoryModel.js";
 import fs from "fs";
 import slugify from "slugify";
 import dotenv from "dotenv";
+import { redis } from "../server.js";
+import JWT from "jsonwebtoken"
+import userModel from "../models/userModel.js";
 
 dotenv.config();
 export const createProductController = async (req, res) => {
@@ -52,11 +55,17 @@ export const createProductController = async (req, res) => {
 export const getProductController = async (req, res) => {
   try {
     const products = await productModel
-      .find({})
-      .populate("category")
-      .select("-photo")
-      .limit(12)
-      .sort({ createdAt: -1 });
+  .find({
+    $or: [
+      { isCustomized: false },
+      { isCustomized: { $exists: false } }
+    ]
+  })
+  .populate("category")
+  .select("-photo")
+  .limit(12)
+  .sort({ createdAt: -1 });
+
     res.status(200).send({
       success: true,
       counTotal: products.length,
@@ -75,6 +84,10 @@ export const getProductController = async (req, res) => {
 
 export const getSingleProductController = async (req, res) => {
   try {
+    const User = JWT.verify(req.headers.authorization,process.env.JWT_SECRET)
+    console.log(User)
+    const user  =  await userModel.findById(User._id)
+    
     const product = await productModel
       .findOne({ slug: req.params.slug })
       .select("-photo")
@@ -183,7 +196,13 @@ export const productFiltersController = async (req, res) => {
     let args = {};
     if (checked.length > 0) args.category = checked;
     if (radio.length) args.price = { $gte: radio[0], $lte: radio[1] };
+    
+    args.$or = [
+      { isCustomized: false },
+      { isCustomized: { $exists: false } }
+    ];
     const products = await productModel.find(args);
+    
     res.status(200).send({
       success: true,
       products,
@@ -220,7 +239,12 @@ export const productListController = async (req, res) => {
     const perPage = 6;
     const page = req.params.page ? req.params.page : 1;
     const products = await productModel
-      .find({})
+      .find({
+        $or: [
+          { isCustomized: false },
+          { isCustomized: { $exists: false } }
+        ]
+      })
       .select("-photo")
       .skip((page - 1) * perPage)
       .limit(perPage)
@@ -303,3 +327,58 @@ export const productCategoryController = async (req, res) => {
     });
   }
 };
+
+
+
+export const CreateCustomizeProduct = async(req,res)=>{
+  try{
+    const {Product_Id} = req.body
+    const { photo } = req.files
+   
+
+    
+
+    if(Product_Id && photo){
+
+      const product  = await productModel.findById(Product_Id)
+      product._id=null
+      product.__v=null
+      const User = JWT.verify(req.headers.authorization,process.env.JWT_SECRET)
+      
+      if(product){
+        // now add the product to the redis server 
+        const products = new productModel({name:product.name,description:product.description,price:product.price,category:product.category, slug: slugify(`${product.name} (customized)`) , photo:photo , isCustomized:true , customizedBy:User._id});
+        if (photo) {
+          products.photo.data = photo.data;
+          products.photo.contentType = photo.type;
+        }
+        await products.save();
+        res.status(201).send({
+          success: true,
+          message: "Product Customized Successfully",
+          products,
+        });
+
+
+      }else{
+        res.status(401).send({
+          success:false,
+          err:"Product not found",
+          message:"Product not found"
+        })
+      }
+    }else{
+      res.status(401).send({
+        success:false,
+        err:"Product Id Error or Photo Error ",
+        message:"Product Id not found"
+      })
+    }
+  }catch(err){
+    res.status(404).send({
+      success:false,
+      err,
+      message:err.message
+    })
+  }
+}

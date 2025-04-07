@@ -25,6 +25,7 @@ const productSchema = new mongoose.Schema(
     },
     quantity: {
       type: Number,
+      default:1,
       required: true,
     },
     photo: {
@@ -39,7 +40,7 @@ const productSchema = new mongoose.Schema(
       default:false
     },
     customizedBy:{
-      type:mongoose.Schema.model.ObjectId,
+      type:mongoose.Schema.Types.ObjectId,
       ref:"users"
     }
     

@@ -7,12 +7,34 @@ import authRoutes from './routes/authRoute.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import productRoutes from './routes/productRoute.js';
 import cors from 'cors';
+import Redis from 'ioredis';
+import fileUpload from 'express-fileupload';
+
+
+
 dotenv.config()
 connectDB();
 const app = express()
 app.use(cors());
 app.use(express.json())
 app.use(morgan('dev'))
+app.use(fileUpload());
+
+// configure redis 
+export const redis = new Redis({
+    host: 'redis-10481.c61.us-east-1-3.ec2.redns.redis-cloud.com',
+        port: 10481,
+        password:process.env.REDIS_KEY,
+})
+
+redis.on("connect",()=>{
+    console.log("connected to the redis")
+})
+
+// checking the redis connection 
+const hello = await redis.ping()
+console.log(hello)
+
 app.use("/api/v1/auth",authRoutes);
 app.use("/api/v1/category", categoryRoutes);
 app.use("/api/v1/product", productRoutes);

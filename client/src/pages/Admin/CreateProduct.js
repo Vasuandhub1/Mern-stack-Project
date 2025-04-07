@@ -6,6 +6,11 @@ import axios from "axios";
 import { Select } from "antd";
 import { useNavigate } from "react-router-dom";
 const { Option } = Select;
+
+
+
+
+
 const CreateProduct = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
@@ -34,7 +39,6 @@ const CreateProduct = () => {
     getAllCategory();
   }, []);
 
-  
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
@@ -65,7 +69,6 @@ const CreateProduct = () => {
       toast.error("Failed to create product. Please check inputs.");
     }
   };
-
   return (
     <Layout title={"Dashboard - Create Product"}>
       <div className="container-fluid m-3 p-3 dashboard">
@@ -99,7 +102,9 @@ const CreateProduct = () => {
                     type="file"
                     name="photo"
                     accept="image/*"
-                    onChange={(e) => setPhoto(e.target.files[0])}
+                    onChange={(e) => {setPhoto(e.target.files[0])
+                      
+                    }}
                     hidden
                   />
                 </label>

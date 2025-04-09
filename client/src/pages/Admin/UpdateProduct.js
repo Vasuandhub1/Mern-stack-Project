@@ -58,7 +58,7 @@ const UpdateProduct = () => {
   useEffect(() => {
     getAllCategory();
   }, []);
-
+console.log(name)
  
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -70,15 +70,14 @@ const UpdateProduct = () => {
       productData.append("quantity", quantity);
       photo && productData.append("photo", photo);
       productData.append("category", category);
-      const { data } = axios.put(
-        `/api/v1/product/update-product/${id}`,
-        productData
-      );
+      const { data } = await axios.put(`http://localhost:8080/api/v1/product/update-product/${id}`, productData,{withCredentials:true});
+      console.log(data)
       if (data?.success) {
-        toast.error(data?.message);
-      } else {
-        toast.success("Product Updated Successfully");
+        toast.success(data?.message);
         navigate("/dashboard/admin/products");
+      } else {
+        toast.error(data.message);
+        
       }
     } catch (error) {
       console.log(error);

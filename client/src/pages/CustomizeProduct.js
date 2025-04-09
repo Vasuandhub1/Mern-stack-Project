@@ -63,7 +63,7 @@ const CustomizeProduct = () => {
       formData.append("photo", dataURLtoBlob(DataURL)); // convert base64 image to blob
       formData.append("Product_Id", customize);
 
-      const {data} = await axios.post("http://localhost:8080/api/v1/product/create-customize-product",formData )
+      const {data} = await axios.post("http://localhost:8080/api/v1/product/create-customize-product",formData,{withCredentials:true} )
       
       if (data?.success) {
         toast.success(data?.message);

@@ -25,7 +25,8 @@ const CreateProduct = () => {
   
   const getAllCategory = async () => {
     try {
-      const { data } = await axios.get("/api/v1/category/get-category");
+      const { data } = await axios.get("http://localhost:8080/api/v1/category/get-category");
+      
       if (data?.success) {
         setCategories(data?.category);
       }
@@ -49,12 +50,24 @@ const CreateProduct = () => {
       productData.append("quantity", quantity);
       productData.append("photo", photo);
       productData.append("category", category);
-      const { data } = await axios.post(
-        "/api/v1/product/create-product",
-        productData
+
+      const yourToken = JSON.parse(localStorage.getItem("auth"))
+     
+
+    
+      const { data } = await axios.post("http://localhost:8080/api/v1/product/create-product",
+        productData,  {
+          withCredentials:true
+        }
       );
+      console.log(data,"product")
       if (data?.success) {
-        toast.error(data?.message);
+        if(data.success === true){
+          toast.success(data?.message)
+          navigate("/dashboard/admin/products");
+        }else{
+          toast.error(data?.message);
+        }
       } else {
         toast.custom(
           <div className="bg-green-500 text-white px-4 py-2 rounded shadow-md">

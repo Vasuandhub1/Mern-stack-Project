@@ -3,15 +3,20 @@ import categoryModel from "../models/categoryModel.js";
 import fs from "fs";
 import slugify from "slugify";
 import dotenv from "dotenv";
-import { redis } from "../server.js";
+
 import JWT from "jsonwebtoken"
 import userModel from "../models/userModel.js";
 
 dotenv.config();
+
 export const createProductController = async (req, res) => {
   try {
-    const { name, description, price, category, quantity, shipping } =
-      req.fields;
+    console.log("hello from controller")
+    
+    const {name, description, price, category, quantity} = req.body
+    
+    
+      
     const { photo } = req.files;
     switch (true) {
       case !name:
@@ -25,30 +30,28 @@ export const createProductController = async (req, res) => {
       case !quantity:
         return res.status(500).send({ error: "Quantity is Required" });
       case photo && photo.size > 1000000:
+        
         return res
           .status(500) 
           .send({ error: "photo is Required and should be less then 1mb" });
     }
 
-    const products = new productModel({ ...req.fields, slug: slugify(name) });
-    if (photo) {
-      products.photo.data = fs.readFileSync(photo.path);
-      products.photo.contentType = photo.type;
-    }
-    await products.save();
-    res.status(201).send({
+    const products = await productModel.create({ ...req.body, slug: slugify(name),photo:photo});
+    console.log(products)
+   return  res.status(201).send({
       success: true,
-      message: "Product Created Successfully",
       products,
+      message: "Product Created Successfully",
+      
     });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({
+  }catch(err) {
+    res.status(404).send({
       success: false,
-      error,
+      err,
       message: "Error in crearing product",
     });
   }
+ 
 };
 
 
@@ -144,9 +147,13 @@ export const deleteProductController = async (req, res) => {
 
 export const updateProductController = async (req, res) => {
   try {
-    const { name, description, price, category, quantity, shipping } =
-      req.fields;
-    const { photo } = req.files;
+    console.log("hello update")
+    const { name, description, price, category, quantity, shipping } =req.body;
+      
+        const  photo  = req.files.photo
+        console.log(name)
+      
+  
     switch (true) {
       case !name:
         return res.status(500).send({ error: "Name is Required" });
@@ -164,24 +171,19 @@ export const updateProductController = async (req, res) => {
           .send({ error: "photo is Required and should be less then 1mb" });
     }
 
-    const products = await productModel.findByIdAndUpdate(
-      req.params.pid,
-      { ...req.fields, slug: slugify(name) },
+    const products = await productModel.findByIdAndUpdate(req.params.pid,{ ...req.body, slug: slugify(name) ,photo:photo},
       { new: true }
     );
-    if (photo) {
-      products.photo.data = fs.readFileSync(photo.path);
-      products.photo.contentType = photo.type;
-    }
-    await products.save();
+
+    console.log(products,"products")
     res.status(201).send({
       success: true,
       message: "Product Updated Successfully",
       products,
     });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({
+  }catch(error) {
+    
+    res.status(404).send({
       success: false,
       error,
       message: "Error in Updte product",
@@ -343,7 +345,12 @@ export const CreateCustomizeProduct = async(req,res)=>{
       const product  = await productModel.findById(Product_Id)
       product._id=null
       product.__v=null
-      const User = JWT.verify(req.headers.authorization,process.env.JWT_SECRET)
+      const {Auth} = req.cookies
+      console.log(Auth)
+          
+          const User = JWT.verify(Auth,
+               process.env.JWT_SECRET
+              );
       
       if(product){
         // now add the product to the redis server 
